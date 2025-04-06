@@ -12,7 +12,7 @@ import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 
-const pages = ['Български групи', 'Чужди групи'];
+const pages = ['Български групи', 'Чужди групи','Добави Ревю', 'Моите ревюта'];
 const settings = ['Профил', 'Излез'];
 
 function ResponsiveAppBar() {
@@ -44,7 +44,6 @@ function ResponsiveAppBar() {
                         component="a"
                         href="#app-bar-with-responsive-menu"
                         sx={{
-                            mr: 2,
                             display: { xs: 'none', md: 'flex' },
                             fontFamily: 'monospace',
                             fontWeight: 700,
@@ -95,7 +94,12 @@ function ResponsiveAppBar() {
                             <Button
                                 key={page}
                                 onClick={handleCloseNavMenu}
-                                sx={{ my: 2, color: 'white', display: 'block' }}
+                                sx={{
+                                    my: 2,
+                                    mx: 4,
+                                    color: 'white',
+                                    display: 'block',
+                                }}
                             >
                                 {page}
                             </Button>
