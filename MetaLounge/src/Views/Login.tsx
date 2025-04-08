@@ -8,27 +8,35 @@ import {
     Container,
     Link,
     InputAdornment,
-    IconButton
+    IconButton,
+    Alert,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { useNavigate } from 'react-router-dom';
 
 export default function LoginForm() {
-    const [email, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [emailError, setUsernameError] = useState(false);
+    const [emailError, setEmailError] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
+    const [authError, setAuthError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    const navigate = useNavigate();
+
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        setAuthError(null);
 
         let hasError = false;
 
         if (!email) {
-            setUsernameError(true);
+            setEmailError(true);
             hasError = true;
         } else {
-            setUsernameError(false);
+            setEmailError(false);
         }
 
         if (!password) {
@@ -39,13 +47,49 @@ export default function LoginForm() {
         }
 
         if (!hasError) {
-            // Handle login logic here
-            console.log('Login attempt with:', { email, password });
+            try {
+                setIsLoading(true);
+                const auth = getAuth();
+                await signInWithEmailAndPassword(auth, email, password);
+
+                navigate('/');
+            } catch (error: any) {
+                const errorCode = error.code;
+                const errorMessage = error.message;
+
+                console.error('Login error:', errorCode, errorMessage);
+
+                switch (errorCode) {
+                    case 'auth/invalid-email':
+                        setAuthError('Невалиден имейл адрес.');
+                        break;
+                    case 'auth/user-disabled':
+                        setAuthError('Този акаунт е деактивиран.');
+                        break;
+                    case 'auth/user-not-found':
+                        setAuthError('Няма потребител с този имейл.');
+                        break;
+                    case 'auth/wrong-password':
+                        setAuthError('Грешна парола.');
+                        break;
+                    case 'auth/too-many-requests':
+                        setAuthError('Твърде много опити за вход. Моля, опитайте по-късно.');
+                        break;
+                    default:
+                        setAuthError('Грешка при вход. Моля, опитайте отново.');
+                }
+            } finally {
+                setIsLoading(false);
+            }
         }
     };
 
     const handleClickShowPassword = () => {
         setShowPassword(!showPassword);
+    };
+
+    const handleCloseError = () => {
+        setAuthError(null);
     };
 
     return (
@@ -55,20 +99,27 @@ export default function LoginForm() {
                     Вход
                 </Typography>
 
+                {authError && (
+                    <Alert severity="error" sx={{ mb: 2 }} onClose={handleCloseError}>
+                        {authError}
+                    </Alert>
+                )}
+
                 <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
                     <TextField
                         margin="normal"
                         required
                         fullWidth
-                        id="username"
-                        label="Потребителско име"
-                        name="username"
-                        autoComplete="username"
+                        id="email"
+                        label="Имейл"
+                        name="email"
+                        autoComplete="email"
                         autoFocus
                         value={email}
-                        onChange={(e) => setUsername(e.target.value)}
+                        onChange={(e) => setEmail(e.target.value)}
                         error={emailError}
-                        helperText={emailError ? "Моля въведете потребителско име" : ""}
+                        helperText={emailError ? "Моля въведете имейл" : ""}
+                        disabled={isLoading}
                     />
 
                     <TextField
@@ -84,6 +135,7 @@ export default function LoginForm() {
                         onChange={(e) => setPassword(e.target.value)}
                         error={passwordError}
                         helperText={passwordError ? "Моля въведете парола" : ""}
+                        disabled={isLoading}
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">
@@ -91,6 +143,7 @@ export default function LoginForm() {
                                         aria-label="toggle password visibility"
                                         onClick={handleClickShowPassword}
                                         edge="end"
+                                        disabled={isLoading}
                                     >
                                         {showPassword ? <VisibilityOff /> : <Visibility />}
                                     </IconButton>
@@ -103,18 +156,23 @@ export default function LoginForm() {
                         type="submit"
                         fullWidth
                         variant="contained"
-
-                        sx={{ mt: 3, mb: 2, py: 1.5,backgroundColor: '#333',
+                        disabled={isLoading}
+                        sx={{
+                            mt: 3,
+                            mb: 2,
+                            py: 1.5,
+                            backgroundColor: '#333',
                             height: 54,
                             '&:hover': {
                                 backgroundColor: '#555',
-                            }, }}
+                            },
+                        }}
                     >
-                        Вход
+                        {isLoading ? 'Вход...' : 'Вход'}
                     </Button>
 
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-                        <Link href="#" variant="body2">
+                        <Link href="/forgot-password" variant="body2">
                             Забравена парола?
                         </Link>
                         <Link href="/register" variant="body2">

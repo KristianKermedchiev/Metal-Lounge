@@ -12,8 +12,10 @@ import {
     Alert
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { useNavigate } from 'react-router-dom';
 
-export default function RegistrationForm() {
+export default function RegisterForm() {
     const [formData, setFormData] = useState({
         username: '',
         email: '',
@@ -31,7 +33,10 @@ export default function RegistrationForm() {
 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [formSubmitted, setFormSubmitted] = useState(false);
+    const [authError, setAuthError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const navigate = useNavigate();
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
@@ -45,32 +50,69 @@ export default function RegistrationForm() {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     };
 
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        setAuthError(null);
 
+        // Validation
         const newErrors = {
             username: !formData.username,
             email: !formData.email || !validateEmail(formData.email),
-            password: !formData.password || formData.password.length < 8,
+            password: !formData.password || formData.password.length < 6, // Firebase requires at least 6 chars
             confirmPassword: !formData.confirmPassword,
             passwordMatch: formData.password !== formData.confirmPassword
         };
 
         setErrors(newErrors);
 
-        if (!Object.values(newErrors).some(error => error)) {
-            console.log('Registration data:', formData);
-            setFormSubmitted(true);
+        // If any validation errors, stop here
+        if (Object.values(newErrors).some(error => error)) {
+            return;
+        }
 
-            setTimeout(() => {
-                setFormSubmitted(false);
-                setFormData({
-                    username: '',
-                    email: '',
-                    password: '',
-                    confirmPassword: ''
-                });
-            }, 3000);
+        try {
+            setIsLoading(true);
+            const auth = getAuth();
+
+            // Create user with email and password
+            const userCredential = await createUserWithEmailAndPassword(
+                auth,
+                formData.email,
+                formData.password
+            );
+
+            // Update profile with display name (username)
+            await updateProfile(userCredential.user, {
+                displayName: formData.username
+            });
+
+            console.log('User registered successfully:', userCredential.user);
+
+            // Navigate to home/dashboard
+            navigate('/bulgarian-bands');
+
+        } catch (error: any) {
+            // Handle specific Firebase Auth errors
+            const errorCode = error.code;
+            const errorMessage = error.message;
+
+            console.error('Registration error:', errorCode, errorMessage);
+
+            switch (errorCode) {
+                case 'auth/email-already-in-use':
+                    setAuthError('Този имейл вече е регистриран.');
+                    break;
+                case 'auth/invalid-email':
+                    setAuthError('Невалиден имейл адрес.');
+                    break;
+                case 'auth/weak-password':
+                    setAuthError('Паролата трябва да е поне 6 символа.');
+                    break;
+                default:
+                    setAuthError('Грешка при регистрация. Моля, опитайте отново.');
+            }
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -81,9 +123,9 @@ export default function RegistrationForm() {
                     Регистрация
                 </Typography>
 
-                {formSubmitted && (
-                    <Alert severity="success" sx={{ mb: 2 }}>
-                        Успешна регистрация! Моля, проверете имейла си за потвърждение.
+                {authError && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                        {authError}
                     </Alert>
                 )}
 
@@ -101,6 +143,7 @@ export default function RegistrationForm() {
                         onChange={handleChange}
                         error={errors.username}
                         helperText={errors.username ? "Моля въведете потребителско име" : ""}
+                        disabled={isLoading}
                     />
 
                     <TextField
@@ -115,6 +158,7 @@ export default function RegistrationForm() {
                         onChange={handleChange}
                         error={errors.email}
                         helperText={errors.email ? "Моля въведете валиден имейл адрес" : ""}
+                        disabled={isLoading}
                     />
 
                     <TextField
@@ -129,7 +173,8 @@ export default function RegistrationForm() {
                         value={formData.password}
                         onChange={handleChange}
                         error={errors.password}
-                        helperText={errors.password ? "Паролата трябва да е поне 8 символа" : ""}
+                        helperText={errors.password ? "Паролата трябва да е поне 6 символа" : ""}
+                        disabled={isLoading}
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">
@@ -137,6 +182,7 @@ export default function RegistrationForm() {
                                         aria-label="toggle password visibility"
                                         onClick={() => setShowPassword(!showPassword)}
                                         edge="end"
+                                        disabled={isLoading}
                                     >
                                         {showPassword ? <VisibilityOff /> : <Visibility />}
                                     </IconButton>
@@ -164,6 +210,7 @@ export default function RegistrationForm() {
                                     ? "Паролите не съвпадат"
                                     : ""
                         }
+                        disabled={isLoading}
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">
@@ -171,6 +218,7 @@ export default function RegistrationForm() {
                                         aria-label="toggle confirm password visibility"
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                         edge="end"
+                                        disabled={isLoading}
                                     >
                                         {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                                     </IconButton>
@@ -183,14 +231,19 @@ export default function RegistrationForm() {
                         type="submit"
                         fullWidth
                         variant="contained"
-
-                        sx={{ mt: 3, mb: 2, py: 1.5,backgroundColor: '#333',
+                        disabled={isLoading}
+                        sx={{
+                            mt: 3,
+                            mb: 2,
+                            py: 1.5,
+                            backgroundColor: '#333',
                             height: 54,
                             '&:hover': {
                                 backgroundColor: '#555',
-                            }, }}
+                            },
+                        }}
                     >
-                        Регистрация
+                        {isLoading ? 'Регистриране...' : 'Регистрация'}
                     </Button>
 
                     <Box sx={{ textAlign: 'center', mt: 2 }}>
