@@ -11,9 +11,19 @@ import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
+import { Link } from 'react-router-dom';
+import handleLogout from "../Users/logout";
 
-const pages = ['Български групи', 'Чужди групи','Добави Ревю', 'Моите ревюта'];
-const settings = ['Профил', 'Излез'];
+const pages = [
+    { title: 'Български групи', path: '/bulgarian-bands' },
+    { title: 'Чужди групи', path: '/other-bands' },
+    { title: 'Моите ревюта', path: '/my-reviews' }
+];
+
+const settings = [
+    { title: 'Профил', path: '/profile' },
+    { title: 'Излез', path: '/logout' }
+];
 
 function ResponsiveAppBar() {
     const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
@@ -22,6 +32,7 @@ function ResponsiveAppBar() {
     const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorElNav(event.currentTarget);
     };
+
     const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorElUser(event.currentTarget);
     };
@@ -82,8 +93,12 @@ function ResponsiveAppBar() {
                             sx={{ display: { xs: 'block', md: 'none' } }}
                         >
                             {pages.map((page) => (
-                                <MenuItem key={page} onClick={handleCloseNavMenu}>
-                                    <Typography sx={{ textAlign: 'center' }}>{page}</Typography>
+                                <MenuItem key={page.title} onClick={handleCloseNavMenu}>
+                                    <Typography sx={{ textAlign: 'center' }}>
+                                        <Link to={page.path} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                            {page.title}
+                                        </Link>
+                                    </Typography>
                                 </MenuItem>
                             ))}
                         </Menu>
@@ -92,7 +107,7 @@ function ResponsiveAppBar() {
                     <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
                         {pages.map((page) => (
                             <Button
-                                key={page}
+                                key={page.title}
                                 onClick={handleCloseNavMenu}
                                 sx={{
                                     my: 2,
@@ -101,7 +116,9 @@ function ResponsiveAppBar() {
                                     display: 'block',
                                 }}
                             >
-                                {page}
+                                <Link to={page.path} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                    {page.title}
+                                </Link>
                             </Button>
                         ))}
                     </Box>
@@ -129,8 +146,18 @@ function ResponsiveAppBar() {
                             onClose={handleCloseUserMenu}
                         >
                             {settings.map((setting) => (
-                                <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                                    <Typography sx={{ textAlign: 'center' }}>{setting}</Typography>
+                                <MenuItem key={setting.title} onClick={handleCloseUserMenu}>
+                                    {setting.title === 'Излез' ? (
+                                        <Typography sx={{ textAlign: 'center' }} onClick={handleLogout}>
+                                            {setting.title}
+                                        </Typography>
+                                    ) : (
+                                        <Typography sx={{ textAlign: 'center' }}>
+                                            <Link to={setting.path} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                                {setting.title}
+                                            </Link>
+                                        </Typography>
+                                    )}
                                 </MenuItem>
                             ))}
                         </Menu>
