@@ -1,8 +1,7 @@
 import BulgarianBandsTable from "../Components/BulgarianBandsTable.tsx";
-import BasicButtons from "../Components/Button.tsx";
-import BasicPagination from "../Components/Pagination.tsx";
 import SearchButton from "../Components/Search.tsx";
-import Box from '@mui/material/Box';
+import BasicButtons from "../Components/Button.tsx";
+import Box from "@mui/material/Box";
 
 
 function BulgarianBands() {
@@ -11,10 +10,9 @@ function BulgarianBands() {
         <>
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, my: 4 }}>
                 <SearchButton />
-                <BasicButtons />
+                <BasicButtons label={'Добави аблум'} />
             </Box>
             <BulgarianBandsTable />
-            <BasicPagination />
         </>
     );
 }

@@ -7,12 +7,9 @@ import Typography from '@mui/material/Typography';
 import Menu from '@mui/material/Menu';
 import MenuIcon from '@mui/icons-material/Menu';
 import Container from '@mui/material/Container';
-import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
-import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import { Link } from 'react-router-dom';
-import handleLogout from "../Users/logout";
 
 const pages = [
     { title: 'Български групи', path: '/bulgarian-bands' },
@@ -20,10 +17,6 @@ const pages = [
     { title: 'Моите ревюта', path: '/my-reviews' }
 ];
 
-const settings = [
-    { title: 'Профил', path: '/profile' },
-    { title: 'Излез', path: '/logout' }
-];
 
 function ResponsiveAppBar() {
     const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
@@ -31,10 +24,6 @@ function ResponsiveAppBar() {
 
     const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorElNav(event.currentTarget);
-    };
-
-    const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
-        setAnchorElUser(event.currentTarget);
     };
 
     const handleCloseNavMenu = () => {
@@ -124,11 +113,6 @@ function ResponsiveAppBar() {
                     </Box>
 
                     <Box sx={{ flexGrow: 0 }}>
-                        <Tooltip title="Open settings">
-                            <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                                <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
-                            </IconButton>
-                        </Tooltip>
                         <Menu
                             sx={{ mt: '45px' }}
                             id="menu-appbar"
@@ -145,21 +129,6 @@ function ResponsiveAppBar() {
                             open={Boolean(anchorElUser)}
                             onClose={handleCloseUserMenu}
                         >
-                            {settings.map((setting) => (
-                                <MenuItem key={setting.title} onClick={handleCloseUserMenu}>
-                                    {setting.title === 'Излез' ? (
-                                        <Typography sx={{ textAlign: 'center' }} onClick={handleLogout}>
-                                            {setting.title}
-                                        </Typography>
-                                    ) : (
-                                        <Typography sx={{ textAlign: 'center' }}>
-                                            <Link to={setting.path} style={{ textDecoration: 'none', color: 'inherit' }}>
-                                                {setting.title}
-                                            </Link>
-                                        </Typography>
-                                    )}
-                                </MenuItem>
-                            ))}
                         </Menu>
                     </Box>
                 </Toolbar>

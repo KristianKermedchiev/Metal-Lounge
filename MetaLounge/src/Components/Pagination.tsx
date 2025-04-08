@@ -1,10 +1,22 @@
 import Pagination from '@mui/material/Pagination';
-import Stack from '@mui/material/Stack';
+import Box from '@mui/material/Box';
 
 export default function BasicPagination() {
     return (
-        <Stack spacing={2} alignItems="center" mt={4}>
-            <Pagination count={10} />
-        </Stack>
+        <Box
+            sx={{
+                position: 'fixed',
+                bottom: 20,
+                left: 0,
+                right: 0,
+                display: 'flex',
+                justifyContent: 'center',
+                padding: 2,
+                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                zIndex: 1000,
+            }}
+        >
+            <Pagination count={10} size="large" />
+        </Box>
     );
 }
