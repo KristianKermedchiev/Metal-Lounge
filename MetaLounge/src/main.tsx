@@ -15,6 +15,8 @@ import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 import MyReviews from "./Views/MyReviews.tsx";
+import AddBulgarianAlbum from "./Components/AddBulgarianAlbum.tsx";
+import AddOtherAlbum from "./Components/AddOtherAlbum.tsx";
 
 createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
@@ -31,6 +33,8 @@ createRoot(document.getElementById('root')!).render(
                         <Route path="/bulgarian-bands" element={<BulgarianBands />} />
                         <Route path="/other-bands" element={<OtherBands />} />
                         <Route path="/my-reviews" element={<MyReviews />} />
+                        <Route path="/bulgarian-bands/add-album" element={<AddBulgarianAlbum />} />
+                        <Route path="/other-bands/add-album" element={<AddOtherAlbum />} />
                     </Route>
                 </Route>
 
