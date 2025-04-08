@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -6,27 +7,58 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import FloatingActionButtons from "./FloatingActionButton.tsx";
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../db/firebase.tsx';
 
-
-function createData(
-    name: string,
-    album: string,
-    country: string,
-    genre: string,
-    year: number,
-    score: number,
-    button: string,
-) {
-    return { name, album, country, genre, year, score, button };
+interface Album {
+    id: string;
+    name: string;
+    album: string;
+    country: string;
+    genre: string;
+    year: number | string;
 }
 
-const rows = [
-    createData('Dissection', "Storm of the light's bane", 'Sweden', 'Black Metal', 1995, 5.0, ''),
-    createData('Dissection', "Storm of the light's bane", 'Sweden', 'Black Metal', 1995, 5.0, ''),
+export default function OtherBandsTable() {
+    const [albums, setAlbums] = useState<Album[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-];
+    useEffect(() => {
+        const fetchAlbums = async () => {
+            try {
+                const albumsCollection = collection(db, 'other-albums');
+                const albumSnapshot = await getDocs(albumsCollection);
 
-export default function BasicTable() {
+                const albumList: Album[] = [];
+                for (const docSnapshot of albumSnapshot.docs) {
+                    const albumData = docSnapshot.data();
+
+                    albumList.push({
+                        id: docSnapshot.id,
+                        name: albumData.band,
+                        album: albumData.album,
+                        country: albumData.country,
+                        genre: albumData.genre,
+                        year: albumData.year,
+                    });
+                }
+
+                setAlbums(albumList);
+                setLoading(false);
+            } catch (err) {
+                console.error('Error fetching albums: ', err);
+                setError('Error loading albums');
+                setLoading(false);
+            }
+        };
+
+        fetchAlbums();
+    }, []);
+
+    if (loading) return <div>Loading albums...</div>;
+    if (error) return <div>Error: {error}</div>;
+
     return (
         <TableContainer component={Paper}>
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
@@ -42,21 +74,23 @@ export default function BasicTable() {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {rows.map((row) => (
+                    {albums.map((album) => (
                         <TableRow
-                            key={row.name}
+                            key={album.id}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                         >
                             <TableCell component="th" scope="row">
-                                {row.name}
+                                {album.name}
                             </TableCell>
-                            <TableCell align="center">{row.album}</TableCell>
-                            <TableCell align="center">{row.country}</TableCell>
-                            <TableCell align="center">{row.genre}</TableCell>
-                            <TableCell align="center">{row.year}</TableCell>
-                            <TableCell align="center">{row.score}</TableCell>
+                            <TableCell align="center">{album.album}</TableCell>
+                            <TableCell align="center">{album.country}</TableCell>
+                            <TableCell align="center">{album.genre}</TableCell>
+                            <TableCell align="center">{album.year}</TableCell>
                             <TableCell align="center">
-                                <FloatingActionButtons/>
+                                0
+                            </TableCell>
+                            <TableCell align="center">
+                                <FloatingActionButtons />
                             </TableCell>
                         </TableRow>
                     ))}
